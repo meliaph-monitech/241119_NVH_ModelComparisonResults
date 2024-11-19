@@ -22,9 +22,9 @@ def load_summary_data(file):
 def update_class_names_in_summary(summary_df):
     class_name_map = {
         0.0: "Hot Melt",
-        0.1: "OK",
-        0.2: "Poor Appearance",
-        0.3: "Weak Weld"
+        1.0: "OK",
+        2.0: "Poor Appearance",
+        3.0: "Weak Weld"
     }
 
     # Update the _Prediction columns with new class names

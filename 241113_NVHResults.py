@@ -5,11 +5,17 @@ import plotly.graph_objects as go
 import streamlit as st
 import io
 
-# Function to extract ZIP file and list CSV files
+# Function to extract ZIP file and list all CSV files, including those in subdirectories
 def extract_zip_and_list_files(zip_file):
+    csv_files = []
+    
     with zipfile.ZipFile(zip_file, 'r') as zip_ref:
-        zip_ref.extractall("extracted_folder")  # Extract to a directory called "extracted_folder"
-        return [f for f in os.listdir("extracted_folder") if f.endswith(".csv")]
+        # Iterate through all files in the ZIP, including those in subdirectories
+        for file in zip_ref.namelist():
+            if file.endswith(".csv"):  # Check if the file is a CSV
+                csv_files.append(file)  # Add the file to the list
+    
+    return csv_files
 
 # Function to load the summary table
 def load_summary_data(file):
@@ -87,7 +93,7 @@ st.title("CSV File Visualizer")
 uploaded_zip = st.file_uploader("Upload ZIP file containing CSV files", type=["zip"])
 
 if uploaded_zip:
-    # Extract ZIP and list CSV files inside
+    # Extract ZIP and list CSV files inside (including files in subdirectories)
     csv_files = extract_zip_and_list_files(uploaded_zip)
 
     if csv_files:
@@ -102,7 +108,9 @@ if uploaded_zip:
             selected_model = st.selectbox("Select Model for Coloring", model_columns)
 
             if st.button("Plot Data"):
-                file_path = os.path.join("extracted_folder", selected_file)
-                load_and_plot_csv_with_highlights(file_path, summary_df, selected_model)
+                # Extract the CSV file from the zip and load it
+                with zipfile.ZipFile(uploaded_zip, 'r') as zip_ref:
+                    with zip_ref.open(selected_file) as file:
+                        load_and_plot_csv_with_highlights(file, summary_df, selected_model)
     else:
         st.warning("No CSV files found in the ZIP file.")

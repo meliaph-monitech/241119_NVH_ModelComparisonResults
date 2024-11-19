@@ -14,9 +14,10 @@ def extract_zip_and_list_files(zip_file):
                 csv_files.append(file)
     return csv_files
 
-# Function to load the summary table
-def load_summary_data(file):
-    return pd.read_csv(file)
+# Function to load the summary table from GitHub directly
+def load_summary_data_from_github():
+    url = "https://raw.githubusercontent.com/meliaph-monitech/NVH_ModelComparisonResults/refs/heads/main/241113_NVH_metadata.csv"
+    return pd.read_csv(url)
 
 # Function to update class names in the summary dataframe
 def update_class_names_in_summary(summary_df):
@@ -137,21 +138,19 @@ if uploaded_zip:
     if csv_files:
         selected_file = st.selectbox("Select CSV File to Plot", csv_files)
 
-        uploaded_summary_file = st.file_uploader("Upload Summary CSV File", type=["csv"])
+        # Directly load the summary data from GitHub
+        summary_df = load_summary_data_from_github()
 
-        if uploaded_summary_file:
-            summary_df = load_summary_data(uploaded_summary_file)
+        # Update class names in the summary dataframe
+        summary_df = update_class_names_in_summary(summary_df)
 
-            # Update class names in the summary dataframe
-            summary_df = update_class_names_in_summary(summary_df)
+        model_columns = [col for col in summary_df.columns if "_Prediction" in col]
+        selected_model = st.selectbox("Select Model for Coloring", model_columns)
 
-            model_columns = [col for col in summary_df.columns if "_Prediction" in col]
-            selected_model = st.selectbox("Select Model for Coloring", model_columns)
-
-            if st.button("Plot Data"):
-                # Extract the CSV file from the zip and load it
-                with zipfile.ZipFile(uploaded_zip, 'r') as zip_ref:
-                    with zip_ref.open(selected_file) as file:
-                        load_and_plot_csv_with_highlights(file, summary_df, selected_model)
+        if st.button("Plot Data"):
+            # Extract the CSV file from the zip and load it
+            with zipfile.ZipFile(uploaded_zip, 'r') as zip_ref:
+                with zip_ref.open(selected_file) as file:
+                    load_and_plot_csv_with_highlights(file, summary_df, selected_model)
     else:
         st.warning("No CSV files found in the ZIP file.")

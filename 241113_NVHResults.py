@@ -18,6 +18,7 @@ def extract_zip_and_list_files(zip_file):
 def load_summary_data(file):
     return pd.read_csv(file)
 
+# Function to load and plot CSV data with highlights based on predictions
 def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
     raw_data = pd.read_csv(file)
 
@@ -62,7 +63,6 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
             continue
 
         color = class_color_map.get(prediction, "black")
-        linestyle = 'dash' if row["is_test"] else 'solid'
 
         hover_template = f"Bead Number: {bead_number}<br>Class: {prediction}"
 
@@ -72,7 +72,7 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
             x=raw_data.index[start_idx:end_idx + 1],
             y=raw_data.iloc[start_idx:end_idx + 1, 0],
             mode='lines',
-            line=dict(color=color, dash=linestyle, width=1),
+            line=dict(color=color, width=1),
             name=f"Class {prediction}" if show_legend else None,  # Add to legend if not added
             hovertemplate=hover_template,
             showlegend=show_legend  # Suppress additional legend entries
@@ -82,7 +82,7 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
             x=raw_data.index[start_idx:end_idx + 1],
             y=raw_data.iloc[start_idx:end_idx + 1, 1],
             mode='lines',
-            line=dict(color=color, dash=linestyle, width=1),
+            line=dict(color=color, width=1),
             name=None,  # No duplicate legend entries for the second column
             hovertemplate=hover_template,
             showlegend=False  # Suppress legend
@@ -101,7 +101,6 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
     )
 
     st.plotly_chart(fig)
-
 
 
 # Streamlit UI

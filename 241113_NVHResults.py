@@ -22,12 +22,9 @@ def load_summary_data(file):
     return pd.read_csv(file)
 
 # Function to load and plot CSV data with highlights based on predictions
-def load_and_plot_csv_with_highlights(file_name, summary_df, selected_model):
-    if not os.path.exists(file_name):
-        st.error(f"File '{file_name}' not found.")
-        return
-
-    raw_data = pd.read_csv(file_name)
+def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
+    # Read CSV content from in-memory file stream
+    raw_data = pd.read_csv(file)
 
     class_color_map = {
         0.0: "blue",
@@ -42,7 +39,7 @@ def load_and_plot_csv_with_highlights(file_name, summary_df, selected_model):
     fig.add_trace(go.Scatter(x=raw_data.index, y=raw_data.iloc[:, 0], mode='lines', line=dict(color='gray'), name='All Data (First Column)'), row=1, col=1)
     fig.add_trace(go.Scatter(x=raw_data.index, y=raw_data.iloc[:, 1], mode='lines', line=dict(color='gray'), name='All Data (Second Column)'), row=2, col=1)
 
-    file_info = summary_df[summary_df["file"] == os.path.basename(file_name)]
+    file_info = summary_df[summary_df["file"] == os.path.basename(file.name)]  # Use the name attribute for file name
     added_classes = set()
 
     for idx, row in file_info.iterrows():

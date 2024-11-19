@@ -22,47 +22,37 @@ def load_summary_data(file):
 def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
     raw_data = pd.read_csv(file)
 
-    # Original class-to-color mapping
     class_color_map = {
         0.0: "blue",
-        0.1: "red",
-        0.2: "green",
-        0.3: "purple",
+        1.0: "red",
+        2.0: "green",
+        3.0: "purple",
+        4.0: "orange"
     }
 
-    # Map class labels for legend
-    class_labels = {
-        0.0: "Hot Melt",
-        0.1: "OK",
-        0.2: "Poor Appearance",
-        0.3: "Weak Weld",
-    }
-
-    # Initialize figure
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1)
 
-    # Add All Data traces
+    # Add all data traces with legend
     fig.add_trace(go.Scatter(
-        x=raw_data.index,
-        y=raw_data.iloc[:, 0],
-        mode='lines',
-        line=dict(color='gray', width=1),
-        name='All Data',  # Single legend for all unclassified data
+        x=raw_data.index, 
+        y=raw_data.iloc[:, 0], 
+        mode='lines', 
+        line=dict(color='gray', width=1), 
+        name='All Data (First Column)'  # Legend for general data
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
-        x=raw_data.index,
-        y=raw_data.iloc[:, 1],
-        mode='lines',
-        line=dict(color='gray', width=1),
-        showlegend=False,  # No additional legend for second column
+        x=raw_data.index, 
+        y=raw_data.iloc[:, 1], 
+        mode='lines', 
+        line=dict(color='gray', width=1), 
+        name='All Data (Second Column)',  # Legend for general data
+        showlegend=False  # Suppress duplicate legend entry
     ), row=2, col=1)
 
-    # Track added classes to avoid duplicate legend entries
-    added_classes = set()
-
-    # Process file_info for classified segments
     file_info = summary_df[summary_df["file"] == os.path.basename(file.name)]
+    added_classes = set()  # Track added classes for legends
+
     for idx, row in file_info.iterrows():
         start_idx = int(row["start_index"])
         end_idx = int(row["end_index"])
@@ -73,33 +63,33 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
             continue
 
         color = class_color_map.get(prediction, "black")
-        label = class_labels.get(prediction, f"Class {prediction}")
-        hover_template = f"Bead Number: {bead_number}<br>Class: {label}"
 
-        # Add trace for first column
+        hover_template = f"Bead Number: {bead_number}<br>Class: {prediction}"
+
+        show_legend = prediction not in added_classes  # Only show legend for first appearance
+
         fig.add_trace(go.Scatter(
             x=raw_data.index[start_idx:end_idx + 1],
             y=raw_data.iloc[start_idx:end_idx + 1, 0],
             mode='lines',
             line=dict(color=color, width=1),
-            name=label if prediction not in added_classes else None,  # Add to legend only once
+            name=f"Class {prediction}" if show_legend else None,  # Add to legend if not added
             hovertemplate=hover_template,
-            showlegend=prediction not in added_classes
+            showlegend=show_legend  # Suppress additional legend entries
         ), row=1, col=1)
 
-        # Add trace for second column (no legend here)
         fig.add_trace(go.Scatter(
             x=raw_data.index[start_idx:end_idx + 1],
             y=raw_data.iloc[start_idx:end_idx + 1, 1],
             mode='lines',
             line=dict(color=color, width=1),
+            name=None,  # No duplicate legend entries for the second column
             hovertemplate=hover_template,
-            showlegend=False
+            showlegend=False  # Suppress legend
         ), row=2, col=1)
 
-        added_classes.add(prediction)  # Mark class as added to legend
+        added_classes.add(prediction)  # Mark this class as added
 
-    # Update layout
     fig.update_layout(
         title="Data Visualization with Predictions and Bead Numbers",
         xaxis_title="Index",
@@ -107,11 +97,7 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
         xaxis2_title="Index",
         yaxis2_title="VIS Values",
         height=700,
-        showlegend=True,
-        legend=dict(
-            traceorder="normal",  # Keep order consistent
-            itemsizing='constant',  # Consistent legend item size
-        )
+        showlegend=True
     )
 
     st.plotly_chart(fig)

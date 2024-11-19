@@ -22,12 +22,20 @@ def load_summary_data(file):
 def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
     raw_data = pd.read_csv(file)
 
-    # Map class predictions to colors and labels
+    # Original class-to-color mapping
     class_color_map = {
-        0.0: ("blue", "Hot Melt"),
-        0.1: ("red", "OK"),
-        0.2: ("green", "Poor Appearance"),
-        0.3: ("purple", "Weak Weld"),
+        0.0: "blue",
+        0.1: "red",
+        0.2: "green",
+        0.3: "purple",
+    }
+
+    # Map class labels for legend
+    class_labels = {
+        0.0: "Hot Melt",
+        0.1: "OK",
+        0.2: "Poor Appearance",
+        0.3: "Weak Weld",
     }
 
     # Initialize figure
@@ -64,7 +72,8 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
         if pd.isna(prediction):
             continue
 
-        color, label = class_color_map.get(prediction, ("black", f"Class {prediction}"))
+        color = class_color_map.get(prediction, "black")
+        label = class_labels.get(prediction, f"Class {prediction}")
         hover_template = f"Bead Number: {bead_number}<br>Class: {label}"
 
         # Add trace for first column
@@ -90,7 +99,7 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
 
         added_classes.add(prediction)  # Mark class as added to legend
 
-    # Update layout with custom legend order
+    # Update layout
     fig.update_layout(
         title="Data Visualization with Predictions and Bead Numbers",
         xaxis_title="Index",
@@ -100,13 +109,12 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
         height=700,
         showlegend=True,
         legend=dict(
-            traceorder="normal",  # Maintain the order as defined
+            traceorder="normal",  # Keep order consistent
             itemsizing='constant',  # Consistent legend item size
         )
     )
 
     st.plotly_chart(fig)
-
 
 
 # Streamlit UI

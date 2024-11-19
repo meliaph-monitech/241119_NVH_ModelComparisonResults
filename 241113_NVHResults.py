@@ -99,19 +99,38 @@ def load_and_plot_csv_with_highlights(file_name, summary_df, selected_model):
 # Streamlit file uploader for summary CSV
 st.title("CSV File Visualizer")
 
-uploaded_summary_file = st.file_uploader("Upload Summary CSV File", type=["csv"])
+# Let user specify the folder path on their local system
+folder_path = st.text_input("Enter Folder Path to CSV Files", "")
 
-if uploaded_summary_file:
-    # Load the summary table
-    summary_df = load_summary_data(uploaded_summary_file)
-    
-    # Let user select model columns that end with "_Prediction"
-    model_columns = [col for col in summary_df.columns if "_Prediction" in col]
-    selected_model = st.selectbox("Select Model for Coloring", model_columns)
+if folder_path:
+    # Get the list of CSV files from the specified folder
+    def get_csv_files_from_directory(directory):
+        csv_files = [f for f in os.listdir(directory) if f.endswith(".csv")]
+        return csv_files
 
-    # Let user upload CSV data files from the local computer
-    uploaded_data_file = st.file_uploader("Upload CSV Data File", type=["csv"])
-    
-    if uploaded_data_file:
-        # Load and plot the selected CSV file with the selected model
-        load_and_plot_csv_with_highlights(uploaded_data_file, summary_df, selected_model)
+    # Get CSV files in the directory
+    if os.path.exists(folder_path):
+        csv_files = get_csv_files_from_directory(folder_path)
+        
+        if csv_files:
+            # Create a dropdown for selecting the file
+            selected_file = st.selectbox("Select CSV File to Plot", csv_files)
+
+            # After selecting the CSV, the summary CSV file is uploaded
+            uploaded_summary_file = st.file_uploader("Upload Summary CSV File", type=["csv"])
+
+            if uploaded_summary_file:
+                summary_df = load_summary_data(uploaded_summary_file)
+
+                # Let user select model columns that end with "_Prediction"
+                model_columns = [col for col in summary_df.columns if "_Prediction" in col]
+                selected_model = st.selectbox("Select Model for Coloring", model_columns)
+
+                # Show button for plotting data
+                if st.button("Plot Data"):
+                    file_path = os.path.join(folder_path, selected_file)
+                    load_and_plot_csv_with_highlights(file_path, summary_df, selected_model)
+        else:
+            st.warning("No CSV files found in the specified directory.")
+    else:
+        st.error("The folder path does not exist.")

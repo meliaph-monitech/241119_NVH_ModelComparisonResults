@@ -5,6 +5,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 
+# Set page layout to wide
+st.set_page_config(layout="wide")
+
 # Function to extract ZIP file and list all CSV files, including those in subdirectories
 def extract_zip_and_list_files(zip_file):
     csv_files = []

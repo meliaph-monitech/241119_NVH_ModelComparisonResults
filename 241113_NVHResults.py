@@ -47,13 +47,13 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
 
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1)
 
-    # Add all data traces with legend
+    # Add all data traces with updated legend name
     fig.add_trace(go.Scatter(
         x=raw_data.index, 
         y=raw_data.iloc[:, 0], 
         mode='lines', 
         line=dict(color='gray', width=1), 
-        name='All Data (First Column)'  # Legend for general data
+        name='All Data'  # Change legend name for All Data
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
@@ -61,49 +61,55 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
         y=raw_data.iloc[:, 1], 
         mode='lines', 
         line=dict(color='gray', width=1), 
-        name='All Data (Second Column)',  # Legend for general data
+        name='All Data',  # Change legend name for All Data
         showlegend=False  # Suppress duplicate legend entry
     ), row=2, col=1)
 
+    # Reorder the predictions to have "OK" at the top
     file_info = summary_df[summary_df["file"] == os.path.basename(file.name)]
     added_classes = set()  # Track added classes for legends
+    prediction_order = ["OK", "Hot Melt", "Poor Appearance", "Weak Weld"]
 
-    for idx, row in file_info.iterrows():
-        start_idx = int(row["start_index"])
-        end_idx = int(row["end_index"])
-        prediction = row[selected_model]
-        bead_number = row["bead_number"]
+    for pred in prediction_order:
+        # For each class in the desired order
+        class_rows = file_info[file_info[selected_model] == pred]
 
-        if pd.isna(prediction):
-            continue
+        for idx, row in class_rows.iterrows():
+            start_idx = int(row["start_index"])
+            end_idx = int(row["end_index"])
+            prediction = row[selected_model]
+            bead_number = row["bead_number"]
 
-        color = class_color_map.get(prediction, "black")
+            if pd.isna(prediction):
+                continue
 
-        hover_template = f"Bead Number: {bead_number}<br>Class: {prediction}"
+            color = class_color_map.get(prediction, "black")
 
-        show_legend = prediction not in added_classes  # Only show legend for first appearance
+            hover_template = f"Bead Number: {bead_number}<br>Class: {prediction}"
 
-        fig.add_trace(go.Scatter(
-            x=raw_data.index[start_idx:end_idx + 1],
-            y=raw_data.iloc[start_idx:end_idx + 1, 0],
-            mode='lines',
-            line=dict(color=color, width=1),
-            name=f"Class {prediction}" if show_legend else None,  # Add to legend if not added
-            hovertemplate=hover_template,
-            showlegend=show_legend  # Suppress additional legend entries
-        ), row=1, col=1)
+            show_legend = prediction not in added_classes  # Only show legend for first appearance
 
-        fig.add_trace(go.Scatter(
-            x=raw_data.index[start_idx:end_idx + 1],
-            y=raw_data.iloc[start_idx:end_idx + 1, 1],
-            mode='lines',
-            line=dict(color=color, width=1),
-            name=None,  # No duplicate legend entries for the second column
-            hovertemplate=hover_template,
-            showlegend=False  # Suppress legend
-        ), row=2, col=1)
+            fig.add_trace(go.Scatter(
+                x=raw_data.index[start_idx:end_idx + 1],
+                y=raw_data.iloc[start_idx:end_idx + 1, 0],
+                mode='lines',
+                line=dict(color=color, width=1),
+                name=f"Class {prediction}" if show_legend else None,  # Add to legend if not added
+                hovertemplate=hover_template,
+                showlegend=show_legend  # Suppress additional legend entries
+            ), row=1, col=1)
 
-        added_classes.add(prediction)  # Mark this class as added
+            fig.add_trace(go.Scatter(
+                x=raw_data.index[start_idx:end_idx + 1],
+                y=raw_data.iloc[start_idx:end_idx + 1, 1],
+                mode='lines',
+                line=dict(color=color, width=1),
+                name=None,  # No duplicate legend entries for the second column
+                hovertemplate=hover_template,
+                showlegend=False  # Suppress legend
+            ), row=2, col=1)
+
+            added_classes.add(prediction)  # Mark this class as added
 
     fig.update_layout(
         title="Data Visualization with Predictions and Bead Numbers",

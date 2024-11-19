@@ -3,7 +3,7 @@ import zipfile
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-from plotly.subplots import make_subplots  # Import make_subplots
+from plotly.subplots import make_subplots  # <-- Import make_subplots here
 import streamlit as st
 import io
 
@@ -28,7 +28,6 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
     # Read CSV content from in-memory file stream
     raw_data = pd.read_csv(file)
 
-    # Color map for classes
     class_color_map = {
         0.0: "blue",
         1.0: "red",
@@ -39,7 +38,6 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
 
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1)
 
-    # Add all data traces for both columns (in gray)
     fig.add_trace(go.Scatter(x=raw_data.index, y=raw_data.iloc[:, 0], mode='lines', line=dict(color='gray'), name='All Data (First Column)'), row=1, col=1)
     fig.add_trace(go.Scatter(x=raw_data.index, y=raw_data.iloc[:, 1], mode='lines', line=dict(color='gray'), name='All Data (Second Column)'), row=2, col=1)
 
@@ -57,27 +55,24 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
         color = class_color_map.get(prediction, "black")
         linestyle = 'dash' if row["is_test"] else 'solid'
 
-        # Only add a trace to the legend for each class once
-        if prediction not in added_classes:
-            fig.add_trace(go.Scatter(
-                x=raw_data.index[start_idx:end_idx + 1],
-                y=raw_data.iloc[start_idx:end_idx + 1, 0],
-                mode='lines',
-                line=dict(color=color, dash=linestyle),
-                name=f"Class {prediction}"  # This will add the legend entry
-            ), row=1, col=1)
+        fig.add_trace(go.Scatter(
+            x=raw_data.index[start_idx:end_idx + 1],
+            y=raw_data.iloc[start_idx:end_idx + 1, 0],
+            mode='lines',
+            line=dict(color=color, dash=linestyle),
+            name=f"Class {prediction}" if prediction not in added_classes else None
+        ), row=1, col=1)
 
-            fig.add_trace(go.Scatter(
-                x=raw_data.index[start_idx:end_idx + 1],
-                y=raw_data.iloc[start_idx:end_idx + 1, 1],
-                mode='lines',
-                line=dict(color=color, dash=linestyle),
-                name=f"Class {prediction}"  # This will add the legend entry
-            ), row=2, col=1)
+        fig.add_trace(go.Scatter(
+            x=raw_data.index[start_idx:end_idx + 1],
+            y=raw_data.iloc[start_idx:end_idx + 1, 1],
+            mode='lines',
+            line=dict(color=color, dash=linestyle),
+            name=f"Class {prediction}" if prediction not in added_classes else None
+        ), row=2, col=1)
 
-            added_classes.add(prediction)  # Add the class to the set
+        added_classes.add(prediction)
 
-    # Update layout to adjust the legend and other properties
     fig.update_layout(
         title="Data Visualization with Predictions",
         xaxis_title="Index",
@@ -85,10 +80,9 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
         xaxis2_title="Index",
         yaxis2_title="Second Column Values",
         height=700,
-        showlegend=True  # Ensure legends are shown
+        showlegend=True
     )
 
-    # Plot the figure using Streamlit
     st.plotly_chart(fig)
 
 # Streamlit UI

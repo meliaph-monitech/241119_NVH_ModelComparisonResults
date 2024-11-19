@@ -40,8 +40,8 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
 
     class_color_map = {
         "Hot Melt": "blue",
-        "OK": "green",
-        "Poor Appearance": "yellow",
+        "OK": "red",
+        "Poor Appearance": "green",
         "Weak Weld": "purple"
     }
 

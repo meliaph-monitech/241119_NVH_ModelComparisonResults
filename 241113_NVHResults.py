@@ -126,7 +126,7 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
 
 
 # Streamlit UI
-st.title("CSV File Visualizer")
+st.title("NVH Data Classification Model Training Results")
 
 # File upload for the folder as ZIP
 uploaded_zip = st.file_uploader("Upload ZIP file containing CSV files", type=["zip"])

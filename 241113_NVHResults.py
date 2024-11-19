@@ -76,9 +76,9 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
     fig.update_layout(
         title="Data Visualization with Predictions",
         xaxis_title="Index",
-        yaxis_title="First Column Values",
+        yaxis_title="NIR Values",
         xaxis2_title="Index",
-        yaxis2_title="Second Column Values",
+        yaxis2_title="VIS Values",
         height=700,
         showlegend=True
     )

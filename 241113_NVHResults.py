@@ -18,7 +18,6 @@ def extract_zip_and_list_files(zip_file):
 def load_summary_data(file):
     return pd.read_csv(file)
 
-# Function to load and plot CSV data with highlights based on predictions and bead_number
 def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
     raw_data = pd.read_csv(file)
 
@@ -32,25 +31,26 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
 
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1)
 
-    # All data traces with thinner lines
+    # Add all data traces with legend
     fig.add_trace(go.Scatter(
         x=raw_data.index, 
         y=raw_data.iloc[:, 0], 
         mode='lines', 
-        line=dict(color='gray', width=0.5),  # Thinner line
-        name='All Data (First Column)'
+        line=dict(color='gray', width=1), 
+        name='All Data (First Column)'  # Legend for general data
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=raw_data.index, 
         y=raw_data.iloc[:, 1], 
         mode='lines', 
-        line=dict(color='gray', width=0.5),  # Thinner line
-        name='All Data (Second Column)'
+        line=dict(color='gray', width=1), 
+        name='All Data (Second Column)',  # Legend for general data
+        showlegend=False  # Suppress duplicate legend entry
     ), row=2, col=1)
 
     file_info = summary_df[summary_df["file"] == os.path.basename(file.name)]
-    added_classes = set()
+    added_classes = set()  # Track added classes for legends
 
     for idx, row in file_info.iterrows():
         start_idx = int(row["start_index"])
@@ -66,26 +66,29 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
 
         hover_template = f"Bead Number: {bead_number}<br>Class: {prediction}"
 
-        # Thinner lines for the highlighted segments
+        show_legend = prediction not in added_classes  # Only show legend for first appearance
+
         fig.add_trace(go.Scatter(
             x=raw_data.index[start_idx:end_idx + 1],
             y=raw_data.iloc[start_idx:end_idx + 1, 0],
             mode='lines',
-            line=dict(color=color, dash=linestyle, width=0.5),  # Thinner line
-            name=f"Class {prediction}" if prediction not in added_classes else None,
-            hovertemplate=hover_template
+            line=dict(color=color, dash=linestyle, width=1),
+            name=f"Class {prediction}" if show_legend else None,  # Add to legend if not added
+            hovertemplate=hover_template,
+            showlegend=show_legend  # Suppress additional legend entries
         ), row=1, col=1)
 
         fig.add_trace(go.Scatter(
             x=raw_data.index[start_idx:end_idx + 1],
             y=raw_data.iloc[start_idx:end_idx + 1, 1],
             mode='lines',
-            line=dict(color=color, dash=linestyle, width=0.5),  # Thinner line
-            name=f"Class {prediction}" if prediction not in added_classes else None,
-            hovertemplate=hover_template
+            line=dict(color=color, dash=linestyle, width=1),
+            name=None,  # No duplicate legend entries for the second column
+            hovertemplate=hover_template,
+            showlegend=False  # Suppress legend
         ), row=2, col=1)
 
-        added_classes.add(prediction)
+        added_classes.add(prediction)  # Mark this class as added
 
     fig.update_layout(
         title="Data Visualization with Predictions and Bead Numbers",
@@ -98,6 +101,7 @@ def load_and_plot_csv_with_highlights(file, summary_df, selected_model):
     )
 
     st.plotly_chart(fig)
+
 
 
 # Streamlit UI
